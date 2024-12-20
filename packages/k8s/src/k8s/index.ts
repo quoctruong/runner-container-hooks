@@ -244,9 +244,10 @@ export async function execPodStep(
         resp => {
           // kube.exec returns an error if exit code is not 0, but we can't actually get the exit code
           if (resp.status === 'Success') {
-            core.debug(`quoct response: ${resp.message}, ${resp.code}, ${resp.details}`)
+            core.debug(`quoct response: ${resp.message}, ${resp.code}, ${resp.details}, ${JSON.stringify(resp)}`)
             resolve(resp.code)
           } else {
+            core.debug(`quoct failing exec pod step ${JSON.stringify(resp)}`)
             core.debug(
               JSON.stringify({
                 message: resp?.message,
@@ -259,7 +260,10 @@ export async function execPodStep(
       )
       // If exec.exec fails, explicitly reject the outer promise
       // eslint-disable-next-line github/no-then
-      .catch(e => reject(e))
+      .catch(e => {
+        core.debug(`quoct failing here: ${e}`)
+        reject(e)
+      })
   })
 }
 
