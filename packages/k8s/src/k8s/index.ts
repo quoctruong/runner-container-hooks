@@ -268,11 +268,6 @@ export async function execPodStep(
       })
       .finally(async () => {
         core.debug(`quoct exec finished for ${command} and callback is ${callbacked}`)
-        if (!callbacked) {
-          core.debug(`quoct let's sleep to see if process is still running`)
-          const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-          await sleep(1000000);
-        }
       })
   })
 }
