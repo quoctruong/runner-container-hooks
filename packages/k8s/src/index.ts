@@ -43,8 +43,11 @@ async function run(): Promise<void> {
         throw new Error(`Command not recognized: ${command}`)
     }
   } catch (error) {
+    core.debug(`quoct error ${error} with command`)
     core.error(error as Error)
     process.exit(1)
+  } finally {
+    core.debug(`quoct finally in index.ts`)
   }
 }
 
