@@ -24,6 +24,7 @@ async function run(): Promise<void> {
       )
     }
 
+    core.debug(`quoct running command ${command}`)
     let exitCode = 0
     switch (command) {
       case Command.PrepareJob:

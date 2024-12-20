@@ -63,6 +63,7 @@ export async function runContainerStep(
     throw new Error(`failed to get container job pod name: ${message}`)
   }
 
+  core.debug("quoct waiting for pod phases")
   await waitForPodPhases(
     podName,
     new Set([

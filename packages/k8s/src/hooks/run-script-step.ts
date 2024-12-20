@@ -23,11 +23,13 @@ export async function runScriptStep(
   args.entryPoint = 'sh'
   args.entryPointArgs = ['-e', containerPath]
   try {
+    core.debug("quoct execing pod step");
     await execPodStep(
       [args.entryPoint, ...args.entryPointArgs],
       state.jobPod,
       JOB_CONTAINER_NAME
     )
+    core.debug("quoct done execing pod step");
   } catch (err) {
     core.debug(`execPodStep failed: ${JSON.stringify(err)}`)
     const message = (err as any)?.response?.body?.message || err
