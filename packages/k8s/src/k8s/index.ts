@@ -232,6 +232,7 @@ export async function execPodStep(
   let callbacked = false
   // Exec returns a websocket. If websocket fails, we should reject the promise. Otherwise, websocket will call a callback. Since at that point, websocket is not failing, we can safely resolve or reject the promise.
   await new Promise(function (resolve, reject) {
+    let callbacked2 = false
     exec
       .exec(
         namespace(),
@@ -244,6 +245,7 @@ export async function execPodStep(
         false /* tty */,
         resp => {
           callbacked = true
+          callbacked2 = true
           // kube.exec returns an error if exit code is not 0, but we can't actually get the exit code
           if (resp.status === 'Success') {
             core.debug(`quoct response: ${resp.message}, ${resp.code}, ${resp.details}, ${JSON.stringify(resp)}`)
@@ -267,7 +269,7 @@ export async function execPodStep(
         reject(e)
       })
       .finally(async () => {
-        core.debug(`quoct exec finished for ${command} and callback is ${callbacked}`)
+        core.debug(`quoct exec finished for ${command} and callback is ${callbacked} and callback2 is ${callbacked2}`)
       })
   })
 }
