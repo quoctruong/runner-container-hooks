@@ -151,6 +151,8 @@ exec ${environmentPrefix} ${entryPoint} ${
     entryPointArgs?.length ? entryPointArgs.join(' ') : ''
   }
 `
+
+  core.debug(`quoct content is ${content}`)
   const filename = `${uuidv4()}.sh`
   const entryPointPath = `${process.env.RUNNER_TEMP}/${filename}`
   fs.writeFileSync(entryPointPath, content)

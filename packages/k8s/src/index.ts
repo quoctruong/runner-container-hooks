@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import { Command, getInputFromStdin, prepareJobArgs } from 'hooklib'
+import {inspect} from "util"
 import {
   cleanupJob,
   prepareJob,
@@ -43,7 +44,7 @@ async function run(): Promise<void> {
         throw new Error(`Command not recognized: ${command}`)
     }
   } catch (error) {
-    core.debug(`quoct error ${error} with command`)
+    core.debug(`quoct error ${inspect(error)} with command`)
     core.error(error as Error)
     process.exit(1)
   } finally {

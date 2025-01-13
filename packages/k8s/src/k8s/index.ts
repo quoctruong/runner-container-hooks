@@ -231,10 +231,11 @@ export async function execPodStep(
   core.debug(`quoct Command getting run: ${command}`)
   let callbacked = false
   // Exec returns a websocket. If websocket fails, we should reject the promise. Otherwise, websocket will call a callback. Since at that point, websocket is not failing, we can safely resolve or reject the promise.
-  await new Promise(function (resolve, reject) {
+  await new Promise(async function (resolve, reject) {
     let callbacked2 = false
-    exec
-      .exec(
+    let websocket: WebSocket;
+    try {
+      websocket = await exec.exec(
         namespace(),
         podName,
         containerName,
@@ -261,16 +262,13 @@ export async function execPodStep(
             reject(resp?.message)
           }
         }
-      )
-      // If exec.exec fails, explicitly reject the outer promise
-      // eslint-disable-next-line github/no-then
-      .catch(e => {
-        core.debug(`quoct failing here: ${e}`)
-        reject(e)
-      })
-      .finally(async () => {
-        core.debug(`quoct exec finished for ${command} and callback is ${callbacked} and callback2 is ${callbacked2}`)
-      })
+      );
+    } catch (error) {
+      core.debug(`quoct failing here: ${error}`)
+      reject(error)
+    } finally {
+      core.debug(`quoct exec finished for ${command} and callback is ${callbacked} and callback2 is ${callbacked2}`)
+    }
   })
 }
 
