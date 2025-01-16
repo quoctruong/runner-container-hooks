@@ -26,6 +26,7 @@ async function run(): Promise<void> {
     }
 
     core.debug(`quoct running command ${command}`)
+    core.debug(`quoct response file is ${responseFile}`)
     let exitCode = 0
     switch (command) {
       case Command.PrepareJob:

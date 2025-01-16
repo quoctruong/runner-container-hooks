@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package script_executor;
+
+service ScriptExecutor {
+  rpc ExecuteScript(ScriptRequest) returns (stream ScriptResponse) {}
+}
+
+message ScriptRequest {
+  string script = 1;
+}
+
+message ScriptResponse {
+  int32 exit_code = 1;
+  string output = 2;
+}
