@@ -51,16 +51,20 @@ export async function runScriptStep(
     core.debug(`quoct established client. Time to execute script.`);
     const call = client.executeScript({command});
   
-    call.on('data', (response: any) => {
-      console.log('quoct Output:', response.output);
-    });
-  
-    call.on('end', () => {
-      console.log('quoct Stream ended');
-    });
-  
-    call.on('error', (err: any) => {
-      console.error('quoct Error:', err);
+    await new Promise<void>(async function (resolve, reject) {
+      call.on('data', (response: any) => {
+        console.log('quoct Output:', response.output);
+      });
+    
+      call.on('end', () => {
+        console.log('quoct Stream ended');
+        resolve();
+      });
+    
+      call.on('error', (err: any) => {
+        console.error('quoct Error:', err);
+        reject();
+      });  
     });
 
     /*
