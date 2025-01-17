@@ -41,7 +41,7 @@ export async function runScriptStep(
   args.entryPointArgs = ['-e', containerPath]
   try {
     core.debug(`quoct execing pod step ${JSON.stringify(args)}`);
-    const command = join(...fixArgs([args.entryPoint, ...args.entryPointArgs]));
+    const command = fixArgs([args.entryPoint, ...args.entryPointArgs]).join(' ');
     core.debug(`about to exec command ${command}`);
     // MAKE THIS CLIENT REUSABLE.
     const client = new scriptExecutor.ScriptExecutor(
