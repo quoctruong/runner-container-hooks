@@ -21,6 +21,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
 const scriptExecutor = protoDescriptor.script_executor;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function runScriptStep(
   args: RunScriptStepArgs,
@@ -48,9 +49,12 @@ export async function runScriptStep(
       grpc.credentials.createInsecure(),
     );
     
-    core.debug(`quoct established client. Time to execute script.`);
+    core.debug(`quoct established client. Wait 30 seconds to execute script.`);
+    sleep(30 * 1000);
+    core.debug(`quoct execute script time`);
+
     const call = client.executeScript({command});
-  
+     
     await new Promise<void>(async function (resolve, reject) {
       call.on('data', (response: any) => {
         console.log('quoct Output:', response.output);
