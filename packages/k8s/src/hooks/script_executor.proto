@@ -11,6 +11,6 @@ message ScriptRequest {
 }
 
 message ScriptResponse {
-  int32 exit_code = 1;
+  optional int32 exit_code = 1;
   string output = 2;
 }
