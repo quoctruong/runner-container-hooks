@@ -9,8 +9,8 @@ import { POD_VOLUME_NAME } from './index'
 import { CONTAINER_EXTENSION_PREFIX } from '../hooks/constants'
 import * as shlex from 'shlex'
 
-export const DEFAULT_CONTAINER_ENTRY_POINT_ARGS = [`-f`, `/dev/null`]
-export const DEFAULT_CONTAINER_ENTRY_POINT = 'tail'
+export const DEFAULT_CONTAINER_ENTRY_POINT_ARGS = ["/script_executor/server.js"]
+export const DEFAULT_CONTAINER_ENTRY_POINT = 'node'
 
 export const ENV_HOOK_TEMPLATE_PATH = 'ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE'
 export const ENV_USE_KUBE_SCHEDULER = 'ACTIONS_RUNNER_USE_KUBE_SCHEDULER'
