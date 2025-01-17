@@ -41,7 +41,7 @@ export async function runScriptStep(
   args.entryPointArgs = ['-e', containerPath]
   try {
     core.debug(`quoct execing pod step ${JSON.stringify(args)}`);
-    const command = fixArgs([args.entryPoint, ...args.entryPointArgs]);
+    const command = join(...fixArgs([args.entryPoint, ...args.entryPointArgs]));
     core.debug(`about to exec command ${command}`);
     // MAKE THIS CLIENT REUSABLE.
     const client = new scriptExecutor.ScriptExecutor(
@@ -49,11 +49,11 @@ export async function runScriptStep(
       grpc.credentials.createInsecure(),
     );
     
-    core.debug(`quoct established client. Wait 30 seconds to execute script.`);
-    await sleep(600 * 1000);
+    core.debug(`quoct established client. Wait 10 seconds to execute script.`);
+    await sleep(10 * 1000);
     core.debug(`quoct execute script time`);
 
-    const call = client.executeScript({command});
+    const call = client.executeScript({script: command});
      
     await new Promise<void>(async function (resolve, reject) {
       call.on('data', (response: any) => {
