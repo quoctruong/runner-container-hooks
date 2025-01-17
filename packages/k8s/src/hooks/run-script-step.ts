@@ -50,7 +50,7 @@ export async function runScriptStep(
     );
     
     core.debug(`quoct established client. Wait 30 seconds to execute script.`);
-    sleep(30 * 1000);
+    sleep(600 * 1000);
     core.debug(`quoct execute script time`);
 
     const call = client.executeScript({command});
