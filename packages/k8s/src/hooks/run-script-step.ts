@@ -49,8 +49,6 @@ export async function runScriptStep(
       grpc.credentials.createInsecure(),
     );
     
-    core.debug(`quoct established client. Wait 10 seconds to execute script.`);
-    await sleep(600 * 1000);
     core.debug(`quoct execute script time`);
 
     const call = client.executeScript({script: command});
