@@ -21,7 +21,10 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
 const scriptExecutor = protoDescriptor.script_executor;
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const client = new scriptExecutor.ScriptExecutor(
+  'grpc-service:50051',
+  grpc.credentials.createInsecure(),
+);
 
 export async function runScriptStep(
   args: RunScriptStepArgs,
@@ -42,25 +45,26 @@ export async function runScriptStep(
   try {
     core.debug(`quoct execing pod step ${JSON.stringify(args)}`);
     const command = fixArgs([args.entryPoint, ...args.entryPointArgs]).join(' ');
-    core.debug(`about to exec command ${command}`);
-    // MAKE THIS CLIENT REUSABLE.
-    const client = new scriptExecutor.ScriptExecutor(
-      'grpc-service:50051',
-      grpc.credentials.createInsecure(),
-    );
-    
-    core.debug(`quoct execute script time`);
+    core.debug(`about to exec command ${command}`);    
 
     const call = client.executeScript({script: command});
      
     await new Promise<void>(async function (resolve, reject) {
+      let exitCode = -1;
       call.on('data', (response: any) => {
-        console.log('quoct Output:', response.output);
+        console.log(response.output);
+        if (response.hasOwnProperty('exit_code')) {
+          exitCode = response.exit_code;
+        }
       });
     
       call.on('end', () => {
-        console.log('quoct Stream ended');
-        resolve();
+        console.log(`Job exit code is ${exitCode}`);
+        if (exitCode == 0) {
+          resolve();
+        } else {
+          reject(`Job failed with exit code ${exitCode}`);
+        }
       });
     
       call.on('error', (err: any) => {
