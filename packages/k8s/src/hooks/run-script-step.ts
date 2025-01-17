@@ -52,7 +52,6 @@ export async function runScriptStep(
     await new Promise<void>(async function (resolve, reject) {
       let exitCode = -1;
       call.on('data', (response: any) => {
-        console.log(`quoct object is ${response.toObject()}`)
         console.log(`quoct response output is ${response.output}`);
         console.log(`quoct response exitcode  is ${response.exit_code}`);
         if (response.hasOwnProperty('exit_code')) {
