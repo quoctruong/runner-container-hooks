@@ -11,6 +11,7 @@ import { join } from 'path'
 
 const PROTO_PATH = join(__dirname, './script_executor.proto');
 core.debug(`proto path is ${PROTO_PATH}`);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -59,8 +60,10 @@ export async function runScriptStep(
         }
       });
     
-      call.on('end', () => {
-        console.log(`Job exit code is ${exitCode}`);
+      call.on('end', async () => {
+        console.log(`Job exit code is ${exitCode}, let's sleep`);
+        await sleep(1000);
+        console.log(`Job exit code is ${exitCode}, after sleep`);
         if (exitCode == 0) {
           resolve();
         } else {
