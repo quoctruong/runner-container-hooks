@@ -53,16 +53,20 @@ export async function runScriptStep(
     await new Promise<void>(async function (resolve, reject) {
       let exitCode = -1;
       call.on('data', (response: any) => {
-        console.log(`quoct response output is ${response.output}`);
-        console.log(`quoct response exitcode  is ${response.exit_code}`);
         if (response.hasOwnProperty('exit_code')) {
           exitCode = response.exit_code;
+        }
+        if (response.hasOwnProperty('output')) {
+          console.log('output: ' + response.output);
+        }
+        if (response.hasOwnProperty('error')) {
+          console.error('error: ' + response.error);
         }
       });
     
       call.on('end', async () => {
-        console.log(`Job exit code is ${exitCode}, let's sleep`);
-        await sleep(1000);
+        // Half a second wait in case the data event with the exit code did not get triggered yet.
+        await sleep(500);
         console.log(`Job exit code is ${exitCode}, after sleep`);
         if (exitCode == 0) {
           resolve();
