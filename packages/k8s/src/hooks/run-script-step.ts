@@ -53,14 +53,14 @@ export async function runScriptStep(
     await new Promise<void>(async function (resolve, reject) {
       let exitCode = -1;
       call.on('data', (response: any) => {
-        if (response.hasOwnProperty('exit_code')) {
-          exitCode = response.exit_code;
+        if (response.hasOwnProperty('code')) {
+          exitCode = response.code;
         }
         if (response.hasOwnProperty('output')) {
-          console.log('output: ' + response.output);
+          console.log('quoct output: ' + response.output);
         }
         if (response.hasOwnProperty('error')) {
-          console.error('error: ' + response.error);
+          console.error('quoct error: ' + response.error);
         }
       });
     
