@@ -25,6 +25,14 @@ const scriptExecutor = protoDescriptor.script_executor;
 const client = new scriptExecutor.ScriptExecutor(
   'grpc-service:50051',
   grpc.credentials.createInsecure(),
+  {
+    // Ping the server every 10 seconds to ensure the connection is still active
+    'grpc.keepalive_time_ms': 10_000,
+    // Wait 5 seconds for the ping ack before assuming the connection is dead
+    'grpc.keepalive_timeout_ms': 5_000,
+    // send pings even without active streams
+    'grpc.keepalive_permit_without_calls': 1
+  }
 );
 
 export async function runScriptStep(
