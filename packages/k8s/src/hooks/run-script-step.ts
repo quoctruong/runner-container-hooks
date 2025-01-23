@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as core from '@actions/core'
 import { RunScriptStepArgs } from 'hooklib'
-import { execPodStep } from '../k8s'
+import { execPodStep, getPodStatus } from '../k8s'
 import { fixArgs, writeEntryPointScript } from '../k8s/utils'
 import { JOB_CONTAINER_NAME } from './constants'
 import * as grpc from '@grpc/grpc-js';
@@ -22,18 +22,6 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
 const scriptExecutor = protoDescriptor.script_executor;
-const client = new scriptExecutor.ScriptExecutor(
-  'grpc-service:50051',
-  grpc.credentials.createInsecure(),
-  {
-    // Ping the server every 10 seconds to ensure the connection is still active
-    'grpc.keepalive_time_ms': 10_000,
-    // Wait 5 seconds for the ping ack before assuming the connection is dead
-    'grpc.keepalive_timeout_ms': 5_000,
-    // send pings even without active streams
-    'grpc.keepalive_permit_without_calls': 1
-  }
-);
 
 export async function runScriptStep(
   args: RunScriptStepArgs,
@@ -48,6 +36,30 @@ export async function runScriptStep(
     args.prependPath,
     environmentVariables
   )
+
+  core.debug(`quoct job pod ${state.jobPod}`)
+  // pod has failed so pull the status code from the container
+  const status = await getPodStatus(state.jobPod)
+  if (status?.phase === 'Succeeded') {
+    throw new Error(`Failed to get pod ${state.jobPod} status`);
+  }
+  if (status?.podIP == undefined) {
+    throw new Error(`Failed to get pod ${state.jobPod} IP`);
+  }
+
+  core.debug(`pod IP is ${status?.podIP}`);
+  const client = new scriptExecutor.ScriptExecutor(
+    `${status?.podIP}:50051`,
+    grpc.credentials.createInsecure(),
+    {
+      // Ping the server every 10 seconds to ensure the connection is still active
+      'grpc.keepalive_time_ms': 10_000,
+      // Wait 5 seconds for the ping ack before assuming the connection is dead
+      'grpc.keepalive_timeout_ms': 5_000,
+      // send pings even without active streams
+      'grpc.keepalive_permit_without_calls': 1
+    }
+  );
 
   args.entryPoint = 'sh'
   args.entryPointArgs = ['-e', containerPath]
