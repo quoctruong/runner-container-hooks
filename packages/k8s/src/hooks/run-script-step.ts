@@ -54,7 +54,7 @@ export async function runScriptStep(
   const credentials = await googleAuth.getApplicationDefault();
   const client = new scriptExecutor.ScriptExecutor(
     `${status?.podIP}:50051`,
-    grpc.credentials.createFromGoogleCredential(credentials.credential),
+    grpc.credentials.combineChannelCredentials(grpc.credentials.createInsecure(), grpc.credentials.createFromGoogleCredential(credentials.credential)),
     {
       // Ping the server every 10 seconds to ensure the connection is still active
       'grpc.keepalive_time_ms': 10_000,
