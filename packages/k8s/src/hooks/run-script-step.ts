@@ -6,12 +6,15 @@ import { execPodStep, getPodStatus } from '../k8s'
 import { fixArgs, writeEntryPointScript } from '../k8s/utils'
 import { JOB_CONTAINER_NAME } from './constants'
 import * as grpc from '@grpc/grpc-js';
+
 import * as protoLoader from '@grpc/proto-loader';
 import { join } from 'path'
+import { GoogleAuth } from 'google-auth-library'
 
 const PROTO_PATH = join(__dirname, './script_executor.proto');
 core.debug(`proto path is ${PROTO_PATH}`);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const googleAuth = new GoogleAuth();
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -48,9 +51,10 @@ export async function runScriptStep(
   }
 
   core.debug(`pod IP is ${status?.podIP}`);
+  const credentials = await googleAuth.getApplicationDefault();
   const client = new scriptExecutor.ScriptExecutor(
     `${status?.podIP}:50051`,
-    grpc.credentials.createInsecure(),
+    grpc.credentials.createFromGoogleCredential(credentials.credential),
     {
       // Ping the server every 10 seconds to ensure the connection is still active
       'grpc.keepalive_time_ms': 10_000,
