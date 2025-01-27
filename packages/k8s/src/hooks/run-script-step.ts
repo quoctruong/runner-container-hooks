@@ -8,7 +8,7 @@ import { JOB_CONTAINER_NAME } from './constants'
 import * as grpc from '@grpc/grpc-js';
 
 import * as protoLoader from '@grpc/proto-loader';
-import { join } from 'path'
+import { join } from 'path';
 
 const PROTO_PATH = join(__dirname, './script_executor.proto');
 core.debug(`proto path is ${PROTO_PATH}`);
@@ -51,7 +51,7 @@ export async function runScriptStep(
   core.debug(`pod IP is ${status?.podIP}`);
 
   const client = new scriptExecutor.ScriptExecutor(
-    `localhost:50051`,
+    `${status?.podIP}:50051`,
     grpc.credentials.createInsecure(),
     {
       // Ping the server every 10 seconds to ensure the connection is still active
