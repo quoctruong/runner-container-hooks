@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as k8s from '@kubernetes/client-node'
 import { ContainerInfo, Registry } from 'hooklib'
 import * as stream from 'stream'
+import * as localCp from './cp'
 import {
   getJobPodName,
   getRunnerPodName,
@@ -14,9 +15,9 @@ import {
   PodPhase,
   mergePodSpecWithOptions,
   mergeObjectMeta,
-  useKubeScheduler,
   fixArgs
 } from './utils'
+import { dirname, parse } from 'path'
 
 const kc = new k8s.KubeConfig()
 
@@ -95,15 +96,10 @@ export async function createPod(
   appPod.spec.containers = containers
   appPod.spec.restartPolicy = 'Never'
 
-  if (!useKubeScheduler()) {
-    appPod.spec.nodeName = await getCurrentNodeName()
-  }
-
-  const claimName = getVolumeClaimName()
   appPod.spec.volumes = [
     {
       name: 'work',
-      persistentVolumeClaim: { claimName }
+      emptyDir: {}
     }
   ]
 
@@ -127,6 +123,37 @@ export async function createPod(
 
   const { body } = await k8sApi.createNamespacedPod(namespace(), appPod)
   return body
+}
+
+export async function copyToPod(
+  podName: string,
+  containerName: string,
+  sourcePath: string,
+  targetPath: string
+): Promise<void> {
+  const startTime = Date.now()
+  try {
+    const cp = new localCp.Cp(kc)
+
+    core.debug(
+      `quoct Copying to pod ${podName} container ${containerName} from ${sourcePath} to ${targetPath} in namespace ${namespace()}`
+    )
+    await cp.cpToPod(
+      namespace(),
+      podName,
+      containerName,
+      parse(sourcePath).base,
+      targetPath,
+      dirname(sourcePath)
+    )
+  } catch (error) {
+    core.error(`Error copying to pod: ${error}`)
+    throw new Error('Error copying to pod')
+  }
+
+  const endTime = Date.now()
+  const elapsedTime = endTime - startTime
+  core.debug(`quoct Copy completed in ${elapsedTime} milliseconds`)
 }
 
 export async function createJob(
@@ -155,15 +182,10 @@ export async function createJob(
   job.spec.template.spec.containers = [container]
   job.spec.template.spec.restartPolicy = 'Never'
 
-  if (!useKubeScheduler()) {
-    job.spec.template.spec.nodeName = await getCurrentNodeName()
-  }
-
-  const claimName = getVolumeClaimName()
   job.spec.template.spec.volumes = [
     {
       name: 'work',
-      persistentVolumeClaim: { claimName }
+      emptyDir: {}
     }
   ]
 

@@ -58,6 +58,10 @@ export function containerVolumes(
   mounts.push(
     {
       name: POD_VOLUME_NAME,
+      mountPath: '/whole_work_volume/_work'
+    },
+    {
+      name: POD_VOLUME_NAME,
       mountPath: '/__e',
       subPath: 'externals'
     },
@@ -170,7 +174,9 @@ export function generateContainerName(image: string): string {
     throw new Error(`Image definition '${image}' is invalid`)
   }
 
-  return name
+  const randomSuffix = uuidv4().substring(0, 6)
+  core.debug(`quoct name is ${name.substring(0, 56)}-${randomSuffix}`)
+  return `${name.substring(0, 56)}-${randomSuffix}` // 63 is the max length for container name
 }
 
 // Overwrite or append based on container options
@@ -269,10 +275,6 @@ export function readExtensionFromFile(): k8s.V1PodTemplateSpec | undefined {
     throw new Error(`Failed to parse ${filePath}`)
   }
   return doc as k8s.V1PodTemplateSpec
-}
-
-export function useKubeScheduler(): boolean {
-  return process.env[ENV_USE_KUBE_SCHEDULER] === 'true'
 }
 
 export enum PodPhase {

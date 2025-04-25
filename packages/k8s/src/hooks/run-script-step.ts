@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as core from '@actions/core'
 import { RunScriptStepArgs } from 'hooklib'
-import { execPodStep, getPodStatus } from '../k8s'
+import { execPodStep, copyToPod } from '../k8s'
 import { fixArgs, writeEntryPointScript } from '../k8s/utils'
 import { JOB_CONTAINER_NAME } from './constants'
 import * as grpc from '@grpc/grpc-js';
@@ -24,6 +24,48 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
 const scriptExecutor = protoDescriptor.script_executor;
 
+export async function runScriptStep(
+  args: RunScriptStepArgs,
+  state,
+  responseFile
+): Promise<void> {
+  const { entryPoint, entryPointArgs, environmentVariables } = args
+  const { containerPath, runnerPath } = writeEntryPointScript(
+    args.workingDirectory,
+    entryPoint,
+    entryPointArgs,
+    args.prependPath,
+    environmentVariables
+  )
+
+  args.entryPoint = 'sh'
+  args.entryPointArgs = ['-e', containerPath]
+  try {
+    core.debug('quoct Starting script step')
+
+    await copyToPod(
+      state.jobPod,
+      JOB_CONTAINER_NAME,
+      '/home/runner/_work/_temp',
+      '/__w/'
+    )
+
+    core.debug('quoct Running script by execPodStep')
+    await execPodStep(
+      [args.entryPoint, ...args.entryPointArgs],
+      state.jobPod,
+      JOB_CONTAINER_NAME
+    )
+  } catch (err) {
+    core.debug(`execPodStep failed: ${JSON.stringify(err)}`)
+    const message = (err as any)?.response?.body?.message || err
+    throw new Error(`failed to run script step: ${message}`)
+  } finally {
+    fs.rmSync(runnerPath)
+  }
+}
+
+/*
 export async function runScriptStep(
   args: RunScriptStepArgs,
   state,
@@ -103,13 +145,6 @@ export async function runScriptStep(
       });  
     });
 
-    /*
-    await execPodStep(
-      [args.entryPoint, ...args.entryPointArgs],
-      state.jobPod,
-      JOB_CONTAINER_NAME
-    )
-    */
     core.debug(`quoct done execing pod step ${JSON.stringify(args)}`);
   } catch (err) {
     core.debug(`quoct execPodStep for ${JSON.stringify(args)} failed: ${JSON.stringify(err)}`)
@@ -120,3 +155,4 @@ export async function runScriptStep(
     fs.rmSync(runnerPath)
   }
 }
+*/
